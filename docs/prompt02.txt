@@ -1,0 +1,116 @@
+buatkan docs/issue02.md yang berisi perencanaan  untuk nanti di implementasikan oleh junior programmer atau ai model yang lebih murah.
+
+Isi dari planning adalah sebagai berikut:
+
+Buat table users:
+id integer auto increment primary
+username varchar(255) not null unique
+email  varchar(255) not null unique
+name varchar(255) not null
+password varchar(255) not null bcrypt
+version integer default 0 auto add after update
+status enum('active', 'inactive','delete') default 'active'
+created_at timestamp default current_timestamp
+updated_at timestamp default current_timestamp on update current_timestamp
+
+buat api untuk registerasi user baru
+endpoint: POST /api/v1/users
+request body:
+{
+    "username": "cachak",
+    "email": "app@sahir.web.id",
+    "name": "Sahir",
+    "password": "testing123"
+}
+response body (success):
+{
+    "status": "ok",
+    "message": "User created successfully",
+    "data": {
+        "id": 1,
+        "username": "",
+        "email": "",
+        "name": "",
+        "version": 0,
+        "status": "active",
+        "created_at": "",
+        "updated_at": ""
+    }
+}
+
+response body (error):
+{
+    "status": "error",
+    "message": "User already exists",
+    "errors": [
+        {
+            "code": "USER_ALREADY_EXISTS",
+            "message": "User already exists"
+        }
+    ]
+}
+
+untuk struktur folder dengan contoh sebagai berikut :
+src/
+  app/
+    server.ts
+    bootstrap.ts
+
+  config/
+    env.ts
+    logger.ts
+
+  plugins/
+    db.plugin.ts
+    auth.plugin.ts
+
+  db/
+    client.ts
+    migrations/
+    seed/
+  modules/
+    users/
+      controller/
+        user.controller.ts
+      service/
+        user.service.ts
+      entity/
+        user.entity.ts
+      repository/
+        user.repository.ts
+      user.module.ts
+      user.schema.ts
+      user.types.ts
+
+    auth/
+      controller/
+        auth.controller.ts
+      service/
+        auth.service.ts
+      entity/
+        auth.entity.ts
+      repository/
+        auth.repository.ts
+      auth.module.ts
+      auth.schema.ts
+      auth.types.ts
+  shared/
+    utils/
+    types/
+    constants/
+
+untuk auth belum di pakai, saat ini hanya user saja yang di pakai. 
+    
+
+Dependency flow nya :
+controller -> service -> repository -> entity/db
+Artinya:
+controller boleh panggil service
+service boleh panggil repository
+repository boleh import entity
+controller jangan import repository langsung
+service jangan berisi definisi table
+entity jangan tahu tentang Elysia
+
+
+Jelskan tahapan tahapan yang harus dilakukan untuk mengimplementasikan planning ini, anggap nanti yang melakukan implementasi adalah junior programmer atau ai model yang lebih murah.
