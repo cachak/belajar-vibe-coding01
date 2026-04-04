@@ -144,7 +144,36 @@ Untuk kemudahan dan agar tidak *error-prone*, lakukan step berikut secara beruru
 3. Manfaatkan syntax validasi Schema bawaan Elysia (`t.Object`) pada property `body` route.
 4. Lakukan try-catch (atau custom error handling Elysia) agar output bisa ter-format persis seperti Response contoh (menampilkan message `USER_ALREADY_EXISTS` bila error, dan status success bila jalan mulus).
 
-### Tahap 6: Integrasi (Wiring Aplikasi) & Testing
+### Tahap 6: Integrasi (Wiring Aplikasi) & Manual Testing
 1. Ikat controller user tadi ke dalam `src/modules/users/user.module.ts`.
 2. Ikat module user tersebut ke entry point server utama ElyisaJS (`src/app/server.ts` atau modifikasi `src/index.ts` agar clean & clear).
-3. Jalankan server (`bun run dev`) dan lakukan testing Endpoint Registration menggunakan `cURL` atau `Hoppscotch`/`Postman` demi memastikan sistem bekerja sebagaimana mestinya sesuai spesifikasi dokumentasi ini.
+3. Jalankan server (`bun run dev`) dan lakukan testing Endpoint Registration secara manual menggunakan `cURL` atau `Hoppscotch`/`Postman` demi memastikan sistem bekerja sebagaimana mestinya sesuai spesifikasi dokumentasi ini.
+
+---
+
+## 6. Rencana Pengujian (Testing Plan)
+
+Sebagai bagian dari jaminan kualitas aplikasi, Anda wajib menulis otomatisasi tes. Sebisa mungkin gunakan *test runner* bawaan dari Bun (`bun test`).
+
+### A. Unit Testing
+Fokuskan unit test pada **Service Layer** karena ini adalah inti dari business logic aplikasi (menghapus keharusan mocking framework HTTP yang kompleks).
+1. **Skenario Sukses / Positive Case:**
+   - Input pendaftaran (username, email, nama, password) yang valid.
+   - Panggil _mocked_ metode save di `user.repository.ts` untuk return sukses.
+   - *Assert* bahwa response/data kembalian tidak memiliki properti `password`.
+   - *Assert* pemanggilan mock ke repo (`createUser`) dieksekusi persis 1 kali.
+2. **Skenario Gagal / Negative Case:**
+   - Tentukan state _mock_ `user.repository.findByEmailOrUsername` untuk mengembalikan representasi _true/exist_.
+   - *Assert* bahwa service melempar Custom Error atau Code Exception dengan status/message indikasi duplikasi (contoh: `USER_ALREADY_EXISTS`).
+
+### B. Integration Testing
+Pengujian ini bertujuan memeriksa interaksi dari HTTP Request layer hingga Database layer tanpa mocking. Gunakan database testing tersendiri atau in-memory SQlite.
+1. Gunakan library test framework dan syntax Elysia instance method: `app.handle(new Request(...))` untuk mensimulasikan API request dalam test.
+2. **Positive Test:** 
+   - Tembakkan payload JSON sukses ke endpoint `POST /api/v1/users`.
+   - *Assert* kembalian status code ada pada rentang `200` atau `201`.
+   - *Assert* struktur body balikan JSON utuh sesuai spesifikasi.
+3. **Negative Test:**
+   - Tembakkan input tak lengkap (seperti tanpa isi `email`) ke endpoint `POST /api/v1/users` untuk memvalidasi performa fitur error schema *TypeBox* bawaan (harus mereturn Error bad request, e.g., Code `400`).
+   - Daftarkan satu user di request ke-1. Daftarkan entri yang persis sama di request ke-2. Request ke-2 *harus mengembalikan* error duplikat sesuai spesifikasi struktur Error JSON.
+4. Di bagian akhir block integration test, jalankan query langsung via *Drizzle instance* untuk men-*assert*/ngecek bahwa baris row data user betul-betul tersuntik dengan sempurna dan atribut tersimpan di tabel database yang bersangkutan.
