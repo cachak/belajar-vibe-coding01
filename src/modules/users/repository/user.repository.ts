@@ -12,6 +12,15 @@ export class UserRepository {
     return result.length > 0 ? result[0] : null;
   }
 
+  async findByUsername(username: string) {
+    const result = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, username));
+      
+    return result.length > 0 ? result[0] : null;
+  }
+
   async createUser(data: typeof users.$inferInsert) {
     const [result] = await db.insert(users).values(data);
     

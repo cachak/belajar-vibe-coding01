@@ -4,6 +4,11 @@ import type { users } from "../entity/user.entity";
 export class UserService {
   private repository = new UserRepository();
 
+  async findByUsernameForAuth(username: string) {
+    // Only used by auth module internally. Returns raw entity which includes hashed password.
+    return this.repository.findByUsername(username);
+  }
+
   async register(data: typeof users.$inferInsert) {
     const { username, email, password } = data;
 
