@@ -1,0 +1,107 @@
+buatkan docs/issue03.md yang berisi perencanaan  untuk nanti di implementasikan oleh junior programmer atau ai model yang lebih murah.
+
+Isi dari planning adalah sebagai berikut:
+
+Buat table sessions:
+id integer auto increment primary
+user_id integer not null (foreign key ke table users)
+token varchar(255) not null (isinya token)
+version integer default 1 auto add after update
+status enum('active', 'inactive','delete') default 'active'
+created_at timestamp default current_timestamp
+updated_at timestamp default current_timestamp on update current_timestamp
+
+buat api untuk login user
+endpoint: POST /api/v1/auth/login
+description : 
+- untuk service ngambil username dan password, gunakan service yang sudah ada, jangan membuat baru jika sudah ada, jika belum ada, tarok di module users, sedangkan untuk auth nya tetap di module auth
+- untuk generate token, gunakan library elysiajs/jwt
+request body:
+{
+    "username": "cachak",
+    "password": "testing123"
+}
+response body (success):
+{
+    "status": "ok",
+    "message": "User login successfully",
+    "data": {
+        "token": "token yang di generate",
+    }
+}
+
+
+response body (error):
+{
+    "status": "error",
+    "message": "User atau password salah",
+    "errors": [
+        {
+            "code": "USER_OR_PASSWORD_WRONG",
+            "message": "User atau password salah"
+        }
+    ]
+}
+
+untuk struktur folder dengan contoh sebagai berikut :
+src/
+  app/
+    server.ts
+    bootstrap.ts
+
+  config/
+    env.ts
+    logger.ts
+
+  plugins/
+    db.plugin.ts
+    auth.plugin.ts
+
+  db/
+    client.ts
+    migrations/
+    seed/
+  modules/
+    users/
+      controller/
+        user.controller.ts
+      service/
+        user.service.ts
+      entity/
+        user.entity.ts
+      repository/
+        user.repository.ts
+      user.module.ts
+      user.schema.ts
+      user.types.ts
+
+    auth/
+      controller/
+        auth.controller.ts
+      service/
+        auth.service.ts
+      entity/
+        auth.entity.ts
+      repository/
+        auth.repository.ts
+      auth.module.ts
+      auth.schema.ts
+      auth.types.ts
+  shared/
+    utils/
+    types/
+    constants/
+    
+
+Dependency flow nya :
+controller -> service -> repository -> entity/db
+Artinya:
+controller boleh panggil service
+service boleh panggil repository
+repository boleh import entity
+controller jangan import repository langsung
+service jangan berisi definisi table
+entity jangan tahu tentang Elysia
+
+
+Jelskan tahapan tahapan yang harus dilakukan untuk mengimplementasikan planning ini, anggap nanti yang melakukan implementasi adalah junior programmer atau ai model yang lebih murah.
