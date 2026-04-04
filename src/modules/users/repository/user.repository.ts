@@ -12,6 +12,15 @@ export class UserRepository {
     return result.length > 0 ? result[0] : null;
   }
 
+  async findById(id: number) {
+    const result = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, id));
+      
+    return result.length > 0 ? result[0] : null;
+  }
+
   async findByUsername(username: string) {
     const result = await db
       .select()

@@ -4,6 +4,15 @@ import type { users } from "../entity/user.entity";
 export class UserService {
   private repository = new UserRepository();
 
+  async getUserById(id: number) {
+    const user = await this.repository.findById(id);
+    if (!user) return null;
+    
+    // Sensored response
+    const { password: _, ...userProfile } = user;
+    return userProfile;
+  }
+
   async findByUsernameForAuth(username: string) {
     // Only used by auth module internally. Returns raw entity which includes hashed password.
     return this.repository.findByUsername(username);

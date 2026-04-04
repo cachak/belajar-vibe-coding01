@@ -1,5 +1,6 @@
 import { Elysia, t } from "elysia";
 import { UserService } from "../service/user.service";
+import { authMiddleware } from "../../auth/auth.middleware";
 
 export const userController = new Elysia({ prefix: "/api/v1/users" })
   .decorate("userService", new UserService())
@@ -45,4 +46,20 @@ export const userController = new Elysia({ prefix: "/api/v1/users" })
         password: t.String(),
       }),
     }
+  )
+  .group("", (app) =>
+    app
+      .use(authMiddleware)
+      .get("/me", async ({ userId, userService }: any) => {
+        const profile = await userService.getUserById(userId);
+        if (!profile) {
+          throw new Error("UNAUTHORIZE");
+        }
+        
+        return {
+          status: "ok",
+          message: "Get user profile successfully",
+          data: profile,
+        };
+      })
   );
