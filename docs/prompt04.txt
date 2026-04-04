@@ -1,0 +1,109 @@
+buatkan docs/issue04.md yang berisi perencanaan  untuk nanti di implementasikan oleh junior programmer atau ai model yang lebih murah.
+
+Isi dari planning adalah sebagai berikut:
+
+buat api untuk get profile user yang sedang login
+endpoint: 
+- GET /api/v1/auth/me
+- GET /api/v1/users/me
+
+headers : 
+- Authentication : Bearer <token> (token adalah token yang ada di tabel sessions)
+
+description : 
+- endpoint memang ada dua yaitu /api/v1/auth/me dan /api/v1/users/me, akan tetapi ini menerpakan validasi yang sama, dengan service getUserById nya yang dipanggil sama yang ada di module users
+- validasi di lakukan di module auth atau buatkan middleware untuk validasi header token yang nanti bisa di gunakan di endpoint lain
+- validasi apakan token sudah expire atau tidak, jika sudah expire maka kembalikan error
+- gunakan service yang sudah ada untuk mengambil user atau buat baru jika memang tidak ada, karena ini ngambil usernya berdasarkan user_id
+
+response body (success):
+{
+    "status": "ok",
+    "message": "Get user profile successfully",
+    "data": {
+        "id": 1,
+        "username": "cachak",
+        "email": "app@sahir.web.id",
+        "name": "Sahir",
+        "version": 1,
+        "status": "active",
+        "created_at": "timestamp",
+        "updated_at": "timestamp"
+    }
+}
+
+
+response body (error):
+{
+    "status": "error",
+    "message": "Unauthorize,
+    "errors": [
+        {
+            "code": "UNAUTHORIZE",
+            "message": "Unauthorize"
+        }
+    ]
+}
+
+untuk struktur folder dengan contoh sebagai berikut :
+src/
+  app/
+    server.ts
+    bootstrap.ts
+
+  config/
+    env.ts
+    logger.ts
+
+  plugins/
+    db.plugin.ts
+    auth.plugin.ts
+
+  db/
+    client.ts
+    migrations/
+    seed/
+  modules/
+    users/
+      controller/
+        user.controller.ts
+      service/
+        user.service.ts
+      entity/
+        user.entity.ts
+      repository/
+        user.repository.ts
+      user.module.ts
+      user.schema.ts
+      user.types.ts
+
+    auth/
+      controller/
+        auth.controller.ts
+      service/
+        auth.service.ts
+      entity/
+        auth.entity.ts
+      repository/
+        auth.repository.ts
+      auth.module.ts
+      auth.schema.ts
+      auth.types.ts
+  shared/
+    utils/
+    types/
+    constants/
+    
+
+Dependency flow nya :
+controller -> service -> repository -> entity/db
+Artinya:
+controller boleh panggil service
+service boleh panggil repository
+repository boleh import entity
+controller jangan import repository langsung
+service jangan berisi definisi table
+entity jangan tahu tentang Elysia
+
+
+Jelaskan tahapan-tahapan yang harus dilakukan untuk mengimplementasikan planning ini, anggap nanti yang melakukan implementasi adalah junior programmer atau ai model yang lebih murah.

@@ -64,4 +64,72 @@ describe("Integration: POST /api/v1/auth/login", () => {
     expect(body.status).toBe("error");
     expect(body.message).toBe("User atau password salah");
   });
+
+  test("GET /api/v1/auth/me should return user profile with valid token", async () => {
+    // 1. Get token first
+    const loginRes = await app.handle(
+      new Request("http://localhost/api/v1/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: TEST_USERNAME, password: "supersecret" })
+      })
+    );
+    const loginBody: any = await loginRes.json();
+    const token = loginBody.data.token;
+
+    // 2. Fetch profile
+    const profileRes = await app.handle(
+      new Request("http://localhost/api/v1/auth/me", {
+        method: "GET",
+        headers: { "Authorization": `Bearer ${token}` }
+      })
+    );
+
+    expect(profileRes.status).toBe(200);
+    const profileBody: any = await profileRes.json();
+    expect(profileBody.status).toBe("ok");
+    expect(profileBody.data.username).toBe(TEST_USERNAME);
+    expect(profileBody.data.password).toBeUndefined(); // ensure password is not leaked
+  });
+
+  test("GET /api/v1/users/me should return equivalent user profile", async () => {
+    // 1. Get token first
+    const loginRes = await app.handle(
+      new Request("http://localhost/api/v1/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: TEST_USERNAME, password: "supersecret" })
+      })
+    );
+    const loginBody: any = await loginRes.json();
+    const token = loginBody.data.token;
+
+    // 2. Fetch profile from users module
+    const profileRes = await app.handle(
+      new Request("http://localhost/api/v1/users/me", {
+        method: "GET",
+        headers: { "Authorization": `Bearer ${token}` }
+      })
+    );
+
+    expect(profileRes.status).toBe(200);
+    const profileBody: any = await profileRes.json();
+    expect(profileBody.status).toBe("ok");
+    expect(profileBody.data.username).toBe(TEST_USERNAME);
+    expect(profileBody.data.password).toBeUndefined();
+  });
+
+  test("GET /api/v1/auth/me should fail with 401 on invalid token", async () => {
+    const profileRes = await app.handle(
+      new Request("http://localhost/api/v1/auth/me", {
+        method: "GET",
+        headers: { "Authorization": `Bearer falsy_token` }
+      })
+    );
+
+    expect(profileRes.status).toBe(401);
+    const profileBody: any = await profileRes.json();
+    expect(profileBody.status).toBe("error");
+    expect(profileBody.errors[0].code).toBe("UNAUTHORIZE");
+  });
 });
