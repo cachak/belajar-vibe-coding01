@@ -1,9 +1,12 @@
 import mysql from "mysql2/promise";
 
 async function applyTriggers() {
-  const connection = await mysql.createConnection(
-    process.env.DATABASE_URL || "mysql://root:admin4mysql@localhost:33306/belajar_vibe_coding"
-  );
+  if (!process.env.DATABASE_URL) {
+    console.error("DATABASE_URL is missing in environment variables.");
+    process.exit(1);
+  }
+
+  const connection = await mysql.createConnection(process.env.DATABASE_URL);
 
   console.log("Applying MySQL Triggers...");
 
