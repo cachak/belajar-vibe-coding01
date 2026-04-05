@@ -11,15 +11,15 @@ describe("Integration: POST /api/v1/users", () => {
 
   beforeAll(async () => {
     // Clean up specific test data before starting
-    await db.delete(sessionHistory);
     await db.delete(sessions);
+    await db.delete(sessionHistory);
     await db.delete(users).where(eq(users.username, TEST_USERNAME));
   });
 
   afterAll(async () => {
     // Clean up after tests are done
-    await db.delete(sessionHistory);
     await db.delete(sessions);
+    await db.delete(sessionHistory);
     await db.delete(users).where(eq(users.username, TEST_USERNAME));
   });
 

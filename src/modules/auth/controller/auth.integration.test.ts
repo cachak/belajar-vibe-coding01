@@ -13,8 +13,9 @@ describe("Integration: POST /api/v1/auth/login", () => {
   beforeAll(async () => {
     // 1. Thorough Cleanup of GLOBAL state for this test's username
     // This handles cases where a previous run crashed or left data
-    await db.delete(sessionHistory);
+    // Order matters because deleting sessions triggers history creation!
     await db.delete(sessions);
+    await db.delete(sessionHistory);
     await db.delete(users).where(eq(users.username, TEST_USERNAME));
     
     // 2. Insert fresh test user
@@ -28,8 +29,10 @@ describe("Integration: POST /api/v1/auth/login", () => {
   });
 
   afterAll(async () => {
-    await db.delete(sessionHistory);
+    // order matters: delete sessions FIRST (which fires the trigger and populates history),
+    // THEN delete sessionHistory, THEN users.
     await db.delete(sessions);
+    await db.delete(sessionHistory);
     await db.delete(users).where(eq(users.id, createdUserId));
   });
 
