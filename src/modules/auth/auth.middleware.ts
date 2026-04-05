@@ -1,5 +1,8 @@
 import { Elysia } from "elysia";
 import { jwt } from "@elysiajs/jwt";
+import { eq } from "drizzle-orm";
+import { db } from "../../db/client";
+import { sessions } from "./entity/session.entity";
 
 export const authMiddleware = (app: Elysia) => 
   app
@@ -22,7 +25,19 @@ export const authMiddleware = (app: Elysia) =>
         throw new Error("UNAUTHORIZE_TOKEN");
       }
 
+      // Check if token exists in sessions table
+      const sessionExists = await db
+        .select()
+        .from(sessions)
+        .where(eq(sessions.token, token as string))
+        .limit(1);
+
+      if (sessionExists.length === 0) {
+        throw new Error("UNAUTHORIZE_SESSION_REVOKED");
+      }
+
       return {
         userId: payload.id as number,
+        parsedToken: token,
       };
     });
