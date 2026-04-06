@@ -3,6 +3,7 @@ import { app } from "../../../app/server";
 import { db } from "../../../db/client";
 import { users } from "../../users/entity/user.entity";
 import { sessions } from "../entity/session.entity";
+import { sessionHistory } from "../entity/session-history.entity";
 import { eq } from "drizzle-orm";
 
 describe("Integration: POST /api/v1/auth/login", () => {
@@ -10,9 +11,14 @@ describe("Integration: POST /api/v1/auth/login", () => {
   let createdUserId: number;
 
   beforeAll(async () => {
-    // Inject fake user
+    // 1. Thorough Cleanup of GLOBAL state for this test's username
+    // This handles cases where a previous run crashed or left data
+    // Order matters because deleting sessions triggers history creation!
+    await db.delete(sessions);
+    await db.delete(sessionHistory);
     await db.delete(users).where(eq(users.username, TEST_USERNAME));
     
+    // 2. Insert fresh test user
     const [result] = await db.insert(users).values({
       username: TEST_USERNAME,
       email: "auth@integrate.com",
@@ -20,13 +26,13 @@ describe("Integration: POST /api/v1/auth/login", () => {
       password: await Bun.password.hash("supersecret")
     });
     createdUserId = result.insertId;
-    
-    // Ensure any stale sessions are cleared
-    await db.delete(sessions).where(eq(sessions.userId, createdUserId));
   });
 
   afterAll(async () => {
-    await db.delete(sessions).where(eq(sessions.userId, createdUserId));
+    // order matters: delete sessions FIRST (which fires the trigger and populates history),
+    // THEN delete sessionHistory, THEN users.
+    await db.delete(sessions);
+    await db.delete(sessionHistory);
     await db.delete(users).where(eq(users.id, createdUserId));
   });
 
@@ -130,6 +136,43 @@ describe("Integration: POST /api/v1/auth/login", () => {
     expect(profileRes.status).toBe(401);
     const profileBody: any = await profileRes.json();
     expect(profileBody.status).toBe("error");
+    expect(profileBody.message).toBe("Unauthorized");
     expect(profileBody.errors[0].code).toBe("UNAUTHORIZE");
+  });
+
+  test("GET /api/v1/auth/logout should logout successfully and invalidate token", async () => {
+    // 1. Login to get a fresh token
+    const loginRes = await app.handle(
+      new Request("http://localhost/api/v1/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: TEST_USERNAME, password: "supersecret" })
+      })
+    );
+    const loginBody: any = await loginRes.json();
+    const token = loginBody.data.token;
+
+    // 2. Logout
+    const logoutRes = await app.handle(
+      new Request("http://localhost/api/v1/auth/logout", {
+        method: "GET",
+        headers: { "Authorization": `Bearer ${token}` }
+      })
+    );
+
+    expect(logoutRes.status).toBe(200);
+    const logoutBody: any = await logoutRes.json();
+    expect(logoutBody.status).toBe("ok");
+    expect(logoutBody.message).toBe("Logout successfully");
+
+    // 3. Try to use the same token again (should fail)
+    const profileRes = await app.handle(
+      new Request("http://localhost/api/v1/auth/me", {
+        method: "GET",
+        headers: { "Authorization": `Bearer ${token}` }
+      })
+    );
+
+    expect(profileRes.status).toBe(401);
   });
 });

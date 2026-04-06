@@ -9,8 +9,8 @@ export const app = new Elysia()
       set.status = 401;
       return {
         status: "error",
-        message: "Unauthorize",
-        errors: [{ code: "UNAUTHORIZE", message: "Unauthorize" }],
+        message: "Unauthorized",
+        errors: [{ code: "UNAUTHORIZE", message: "Unauthorized" }],
       };
     }
   })

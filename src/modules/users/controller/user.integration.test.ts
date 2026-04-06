@@ -2,6 +2,8 @@ import { expect, test, describe, beforeAll, afterAll } from "bun:test";
 import { app } from "../../../app/server";
 import { db } from "../../../db/client";
 import { users } from "../entity/user.entity";
+import { sessions } from "../../auth/entity/session.entity";
+import { sessionHistory } from "../../auth/entity/session-history.entity";
 import { eq } from "drizzle-orm";
 
 describe("Integration: POST /api/v1/users", () => {
@@ -9,11 +11,15 @@ describe("Integration: POST /api/v1/users", () => {
 
   beforeAll(async () => {
     // Clean up specific test data before starting
+    await db.delete(sessions);
+    await db.delete(sessionHistory);
     await db.delete(users).where(eq(users.username, TEST_USERNAME));
   });
 
   afterAll(async () => {
     // Clean up after tests are done
+    await db.delete(sessions);
+    await db.delete(sessionHistory);
     await db.delete(users).where(eq(users.username, TEST_USERNAME));
   });
 

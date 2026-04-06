@@ -72,4 +72,12 @@ export const authController = new Elysia({ prefix: "/api/v1/auth" })
           data: profile,
         };
       })
+      .get("/logout", async ({ parsedToken, authService }) => {
+        await authService.logout(parsedToken as any);
+        
+        return {
+          status: "ok",
+          message: "Logout successfully",
+        };
+      })
   );

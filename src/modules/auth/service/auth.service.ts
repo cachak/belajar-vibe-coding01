@@ -26,4 +26,17 @@ export class AuthService {
     
     return token;
   }
+
+  async logout(token: string) {
+    // 1. Delete from sessions table
+    await this.authRepo.deleteSessionByToken(token);
+
+    // 2. Verify that trigger moved it to history
+    const history = await this.authRepo.checkSessionHistoryByToken(token);
+    if (!history) {
+      throw new Error("LOGOUT_FAILED_HISTORY_MISSING");
+    }
+
+    return true;
+  }
 }

@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "bun --watch src/index.ts",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "db:seed": "bun run src/db/seed/apply-triggers.ts"
   },
   "devDependencies": {
     "@types/bun": "^1.3.11",
