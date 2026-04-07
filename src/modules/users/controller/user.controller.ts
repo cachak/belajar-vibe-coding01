@@ -29,21 +29,22 @@ export const userController = new Elysia({ prefix: "/api/v1/users" })
             ],
           };
         }
-        
+        console.error("User registration error:", error.message);
+
         set.status = 500;
         return {
           status: "error",
           message: "Internal server error",
-          errors: [{ code: "INTERNAL_ERROR", message: error.message }],
+          errors: [{ code: "INTERNAL_ERROR", message: "An unexpected error occurred processing your request." }],
         };
       }
     },
     {
       body: t.Object({
-        username: t.String(),
-        email: t.String({ format: "email" }), // Validate email format
-        name: t.String(),
-        password: t.String(),
+        username: t.String({ maxLength: 255 }),
+        email: t.String({ format: "email", maxLength: 255 }), // Validate email format
+        name: t.String({ maxLength: 255 }),
+        password: t.String({ maxLength: 255 }),
       }),
     }
   )
