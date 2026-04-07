@@ -53,7 +53,7 @@ describe("Integration: POST /api/v1/auth/login", () => {
     // MUST validate db directly!
     const sessionRecords = await db.select().from(sessions).where(eq(sessions.userId, createdUserId));
     expect(sessionRecords.length).toBeGreaterThan(0);
-    expect(sessionRecords[sessionRecords.length - 1].token).toBe(body.data.token);
+    expect(sessionRecords[sessionRecords.length - 1]?.token).toBe(body.data.token);
   });
 
   test("returns 401 USER_OR_PASSWORD_WRONG when bad creds provided", async () => {
@@ -125,6 +125,43 @@ describe("Integration: POST /api/v1/auth/login", () => {
     expect(profileBody.data.password).toBeUndefined();
   });
 
+  test("returns 401 USER_OR_PASSWORD_WRONG when username not exists", async () => {
+    const res = await app.handle(
+      new Request("http://localhost/api/v1/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: "nonexistent_user", password: "somepassword" })
+      })
+    );
+
+    expect(res.status).toBe(401);
+    const body: any = await res.json();
+    expect(body.status).toBe("error");
+    expect(body.message).toBe("User atau password salah");
+  });
+
+  test("returns 422 when login payload is incomplete", async () => {
+    const res = await app.handle(
+      new Request("http://localhost/api/v1/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: TEST_USERNAME }) // missing password
+      })
+    );
+
+    expect(res.status).toBe(422);
+  });
+
+  test("GET /api/v1/auth/me should fail with 401 on missing token", async () => {
+    const profileRes = await app.handle(
+      new Request("http://localhost/api/v1/auth/me", {
+        method: "GET"
+      })
+    );
+
+    expect(profileRes.status).toBe(401);
+  });
+
   test("GET /api/v1/auth/me should fail with 401 on invalid token", async () => {
     const profileRes = await app.handle(
       new Request("http://localhost/api/v1/auth/me", {
@@ -138,6 +175,16 @@ describe("Integration: POST /api/v1/auth/login", () => {
     expect(profileBody.status).toBe("error");
     expect(profileBody.message).toBe("Unauthorized");
     expect(profileBody.errors[0].code).toBe("UNAUTHORIZE");
+  });
+
+  test("GET /api/v1/auth/logout should fail with 401 on missing token", async () => {
+    const logoutRes = await app.handle(
+      new Request("http://localhost/api/v1/auth/logout", {
+        method: "GET"
+      })
+    );
+
+    expect(logoutRes.status).toBe(401);
   });
 
   test("GET /api/v1/auth/logout should logout successfully and invalidate token", async () => {
@@ -174,5 +221,14 @@ describe("Integration: POST /api/v1/auth/login", () => {
     );
 
     expect(profileRes.status).toBe(401);
+
+    // 4. Try to logout again with same token (should fail 401 as session is revoked)
+    const logoutRes2 = await app.handle(
+      new Request("http://localhost/api/v1/auth/logout", {
+        method: "GET",
+        headers: { "Authorization": `Bearer ${token}` }
+      })
+    );
+    expect(logoutRes2.status).toBe(401);
   });
 });

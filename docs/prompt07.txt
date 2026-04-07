@@ -1,0 +1,12 @@
+buatkan docs/issue07.md yang berisi perencanaan  untuk nanti di implementasikan oleh junior programmer atau ai model yang lebih murah.
+
+Isi dari planning adalah sebagai berikut:
+
+buatkan unit test dari semua api yang tersedia.
+Jika unit test nya sudah ada, update unit test nya, jadikan lebih baik, lebih rapi, dan lebih mudah di maintain.
+unit test nya menggunakan bun test
+buat skenario test per api selengkap mungkin.
+
+jangan mengubah logic dari api yang sudah ada.
+
+jangan buatkan terlalu detail intruksi unit testnya,. Buatkan saja skenari apa yang harus di test, biarkan nanti yang implementasi detail skenarionya adalah junior programmer atau model yang lebih murah.
