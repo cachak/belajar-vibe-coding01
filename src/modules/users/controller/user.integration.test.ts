@@ -49,7 +49,7 @@ describe("Integration: POST /api/v1/users", () => {
     // Verification directly to Database Layer via Drizzle
     const dbUser = await db.select().from(users).where(eq(users.username, TEST_USERNAME));
     expect(dbUser.length).toBe(1);
-    expect(dbUser[0].email).toBe("integrate@domain.com");
+    expect(dbUser[0]?.email).toBe("integrate@domain.com");
   });
 
   test("returns error for duplicate registration (409 Conflict)", async () => {
@@ -89,6 +89,25 @@ describe("Integration: POST /api/v1/users", () => {
     expect(res.status).toBe(422); // 422 Unprocessable Entity by Elysia TypeBox validator
   });
 
+  test("returns 422 for invalid email format", async () => {
+    const payload = {
+      username: "invalid_email_user",
+      email: "not-an-email",
+      name: "Invalid Email",
+      password: "password123"
+    };
+
+    const res = await app.handle(
+      new Request("http://localhost/api/v1/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+    );
+
+    expect(res.status).toBe(422);
+  });
+
   test("returns 422 for exceeding 255 character validation limit", async () => {
     const bigPayload = {
       username: "long_name_test",
@@ -105,7 +124,27 @@ describe("Integration: POST /api/v1/users", () => {
       })
     );
 
-    // Schema harus menangkal payload di atas sehingga DB insert tidak dijalankan
     expect(res.status).toBe(422); 
+  });
+
+  test("GET /api/v1/users/me returns 401 when no authorization header", async () => {
+    const res = await app.handle(
+      new Request("http://localhost/api/v1/users/me", {
+        method: "GET"
+      })
+    );
+
+    expect(res.status).toBe(401);
+  });
+
+  test("GET /api/v1/users/me returns 401 with invalid token", async () => {
+    const res = await app.handle(
+      new Request("http://localhost/api/v1/users/me", {
+        method: "GET",
+        headers: { "Authorization": "Bearer invalid_token" }
+      })
+    );
+
+    expect(res.status).toBe(401);
   });
 });
