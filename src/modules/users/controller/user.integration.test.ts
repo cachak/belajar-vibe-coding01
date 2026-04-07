@@ -88,4 +88,24 @@ describe("Integration: POST /api/v1/users", () => {
     );
     expect(res.status).toBe(422); // 422 Unprocessable Entity by Elysia TypeBox validator
   });
+
+  test("returns 422 for exceeding 255 character validation limit", async () => {
+    const bigPayload = {
+      username: "long_name_test",
+      email: "long@test.com",
+      name: "A".repeat(300),
+      password: "pass"
+    };
+
+    const res = await app.handle(
+      new Request("http://localhost/api/v1/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bigPayload)
+      })
+    );
+
+    // Schema harus menangkal payload di atas sehingga DB insert tidak dijalankan
+    expect(res.status).toBe(422); 
+  });
 });

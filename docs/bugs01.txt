@@ -1,0 +1,9 @@
+prompt untuk testing panjang nama :
+- coba jalankan aplikasi, lalu coba registrasi user baru dengan name panjangnya 300 karakter, gunakan curl, jangan menambahkan code atau merubah code
+
+prompt untuk memperbaiki bugs ini :
+- buatkan docs/bugs01.md untuk bugs ini, jelaskan tahapan bagaimana cara memperbaikinya untuk junior prgrammer atau model yang lebih murah
+
+
+prompt kalau masih belum ada perbaikian SQL : 
+- perbaiki lagi docs/bugs01.md nya, karena tidak ada intruksi supaya SQL nya tidak muncul
